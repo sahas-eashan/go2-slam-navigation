@@ -1,0 +1,30 @@
+# ROS2 Build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Maps
+maps/*.pgm
+maps/*.yaml
+
+# Backup files
+*.backup
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
