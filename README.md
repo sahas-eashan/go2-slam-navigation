@@ -1,257 +1,67 @@
 # Autonomous Navigation with 2D SLAM - Unitree Go2 EDU
 
-Complete ROS2 Humble workspace for autonomous navigation using 2D SLAM on the Unitree Go2 EDU quadruped robot.
+## Project Objective
 
-## Overview
+Implementing autonomous navigation for the Unitree Go2 EDU quadruped robot, utilizing Simultaneous Localization and Mapping (SLAM) to travel from a specified starting location to any designated endpoint.
 
-This repository provides a ready-to-use implementation of SLAM-based autonomous navigation for the Unitree Go2 EDU robot in Gazebo simulation. The system uses a Velodyne VLP-16 3D LiDAR converted to 2D laser scans for mapping and localization.
+## Software Stack
 
-**Key Features:**
-- Gazebo simulation with realistic Go2 physics
-- Velodyne VLP-16 3D LiDAR with 2D conversion
-- SLAM Toolbox for mapping
-- Nav2 for autonomous navigation
-- CHAMP quadruped controller
-- Pre-configured for ROS2 Humble
+- **Operating System**: Ubuntu 22.04
+- **ROS 2 Distribution**: Humble
+- **Simulator**: Gazebo/Ignition for physics-based quadruped simulation
+- **SLAM**: SLAM Toolbox for mapping and localization
+- **Navigation**: Nav2 for global planning, local planning, and behavior execution
+- **Robot Interface**: Unitree Go2 SDK2 or community ROS 2 driver
 
-## System Requirements
+## Implementation Phases
 
-- **OS**: Ubuntu 22.04
-- **ROS2**: Humble
-- **RAM**: 8GB minimum (16GB recommended)
-- **GPU**: Recommended for Gazebo
+### Phase 1: Simulation
 
-## Quick Start
+#### 1. URDF Integration and Verification
+Obtain and verify the Unitree Go2 URDF model with proper joint configurations and sensor frames (map, odom, base_link, imu_link, lidar_link). Test the model in RViz and validate the TF tree structure.
 
-### 1. Install Dependencies
+#### 2. Gazebo Integration
+Import the Go2 URDF into Gazebo with required physics and sensor plugins (LiDAR, IMU, optional depth camera). Create a test world with obstacles for navigation testing.
 
-```bash
-# ROS2 packages
-sudo apt install -y \
-    ros-humble-gazebo-ros2-control \
-    ros-humble-xacro \
-    ros-humble-robot-localization \
-    ros-humble-ros2-controllers \
-    ros-humble-ros2-control \
-    ros-humble-velodyne \
-    ros-humble-velodyne-gazebo-plugins \
-    ros-humble-velodyne-description \
-    ros-humble-teleop-twist-keyboard \
-    ros-humble-navigation2 \
-    ros-humble-nav2-bringup \
-    ros-humble-slam-toolbox \
-    ros-humble-pointcloud-to-laserscan
-```
+#### 3. TF and Odometry Setup
+Establish correct transform relationships: odom → base_link from robot odometry, base_link → lidar_link as fixed transform, and map → odom from SLAM. Ensure stable frame structure for navigation.
 
-### 2. Build the Workspace
+#### 4. SLAM Configuration
+Configure SLAM Toolbox with appropriate robot frames and sensor inputs. Enable online SLAM mode and verify data reception and TF stability.
 
-```bash
-cd ~/unitree_ros2/go2_slam_navigation
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install
-source install/setup.bash
-```
+#### 5. Mapping
+Drive the simulated robot to generate a complete 2D map of the environment. Save map files and pose graphs for navigation use.
 
-### 3. Launch Gazebo Simulation
+#### 6. Nav2 Setup
+Configure Nav2 with the saved map, localization method, global and local costmaps, robot footprint, planners, and local controller. Set up Behavior Tree Navigator for autonomous navigation tasks.
 
-**Terminal 1**: Start Gazebo with Go2 robot
-```bash
-cd ~/unitree_ros2/go2_slam_navigation
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-ros2 launch go2_config gazebo_velodyne.launch.py rviz:=true
-```
+#### 7. Control Integration
+Connect Nav2 motion commands to the Go2 control interface through the ROS 2 driver, ensuring proper translation of navigation commands to robot locomotion (gait and velocity control).
 
-### 4. Launch Velodyne to 2D Scan Converter
+#### 8. Full Simulation Testing
+Launch complete navigation pipeline in Gazebo: set initial pose, send navigation goals, and verify global path planning, dynamic obstacle avoidance, and smooth local control.
 
-**Terminal 2**: Convert 3D point cloud to 2D laser scan
-```bash
-cd ~/unitree_ros2/go2_slam_navigation
-source /opt/ros/humble/setup.bash
-ros2 launch velodyne_to_scan.launch.py
-```
+### Phase 2: Real Robot Implementation
 
-### 5. Verify Sensors
+#### 9. Hardware Preparation
+Install Unitree ROS 2 SDK/bridge and establish network connectivity between the Go2 and ROS 2 PC. Verify real sensor data availability and replicate simulation TF structure.
 
-**Terminal 3**: Check topics
-```bash
-source /opt/ros/humble/setup.bash
+#### 10. Parameter Tuning
+Adjust SLAM and sensor parameters based on real sensor behavior. Ensure time synchronization and stability of LiDAR, IMU, and odometry data with the TF tree.
 
-# Should see these topics:
-ros2 topic list | grep -E "scan|velodyne|imu|odom"
-# /scan                 ← 2D laser scan (for SLAM)
-# /velodyne_points      ← 3D LiDAR data
-# /imu/data            ← IMU sensor
-# /odom                ← Odometry
+#### 11. Physical SLAM Mapping
+Launch SLAM with tuned parameters and real sensor data. Teleoperate the Go2 to build a complete map, avoiding problematic surfaces. Save the final map and pose graph.
 
-# Verify /scan is publishing
-ros2 topic info /scan
-# Should show: Publisher count: 1
-```
+#### 12. Real-World Navigation
+Load the real map and launch Nav2 with simulation-based configurations. Use RViz for initial pose estimation and goal setting. Tune speed limits, controller parameters, obstacle inflation, and recovery behaviors for quadruped-specific dynamics.
 
-## Package Structure
+#### 13. Testing and Validation
+Conduct repeated waypoint navigation tasks. Measure pose accuracy, path tracking stability, and dynamic obstacle behavior. Iteratively adjust sensor filtering, odometry fusion, and local planner gains for safe operation.
 
-```
-go2_slam_navigation/
-├── src/
-│   ├── go2_description/       # Robot URDF with Velodyne sensor
-│   ├── go2_config/            # Launch files and configurations
-│   └── champ/                 # Quadruped controller framework
-├── velodyne_to_scan.launch.py # Point cloud to laser scan converter
-└── README.md
-```
+## Current Status
 
-## Sensors
-
-| Sensor | Topic | Message Type | Rate |
-|--------|-------|--------------|------|
-| **Velodyne VLP-16** | `/velodyne_points` | PointCloud2 | 10 Hz |
-| **2D Laser Scan** | `/scan` | LaserScan | 10 Hz |
-| **IMU** | `/imu/data` | Imu | 100 Hz |
-| **Odometry** | `/odom` | Odometry | 30 Hz |
-| **Joint States** | `/joint_states` | JointState | 30 Hz |
-
-## Next Steps for SLAM
-
-After verifying sensors work, proceed with SLAM mapping:
-
-### Step 1: Launch SLAM Toolbox
-
-```bash
-# Terminal 4
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-ros2 launch go2_config slam.launch.py
-```
-
-### Step 2: Teleoperate Robot
-
-```bash
-# Terminal 5
-source /opt/ros/humble/setup.bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-
-**Keyboard Controls:**
-- `i` - Forward
-- `k` - Stop
-- `j` - Turn left
-- `l` - Turn right
-- `u/o` - Forward + turn
-- `m/.` - Backward + turn
-
-### Step 3: Save Map
-
-After exploring the environment:
-```bash
-mkdir -p ~/unitree_ros2/go2_slam_navigation/maps
-ros2 run nav2_map_server map_saver_cli -f ~/unitree_ros2/go2_slam_navigation/maps/my_map
-```
-
-### Step 4: Launch Navigation
-
-```bash
-# Stop SLAM (Ctrl+C in Terminal 4)
-# Launch Nav2 with saved map
-ros2 launch go2_config navigate.launch.py \
-    map:=$HOME/unitree_ros2/go2_slam_navigation/maps/my_map.yaml
-```
-
-### Step 5: Set Navigation Goals
-
-In RViz:
-1. Click "2D Pose Estimate" - set initial robot position
-2. Click "Nav2 Goal" - set destination
-3. Robot navigates autonomously!
-
-## Configuration Files
-
-### Velodyne to Scan Converter Parameters
-
-Located in: `velodyne_to_scan.launch.py`
-
-Key parameters:
-- `min_height`: -0.3m (filter ground)
-- `max_height`: 0.3m (filter ceiling)
-- `angle_min/max`: ±180° (full circle)
-- `range_min`: 0.9m
-- `range_max`: 100.0m
-
-### SLAM Toolbox Configuration
-
-Located in: `src/go2_config/config/autonomy/slam.yaml`
-
-- Mode: Online async mapping
-- Solver: Ceres with SPARSE_NORMAL_CHOLESKY
-- Loop closure: Enabled
-- Map resolution: 0.05m
-
-### Nav2 Configuration
-
-Located in: `src/go2_config/config/autonomy/navigation.yaml`
-
-- Planner: Navfn
-- Controller: DWB
-- Recovery behaviors: Spin, backup, wait
-
-## Troubleshooting
-
-### Issue: /scan topic not publishing
-
-**Check:**
-```bash
-ros2 topic info /scan
-```
-
-**Solution:**
-- Ensure velodyne_to_scan converter is running
-- Check /velodyne_points is publishing first
-
-### Issue: SLAM not building map
-
-**Check:**
-```bash
-# Verify TF tree
-ros2 run tf2_tools view_frames
-evince frames.pdf
-
-# Check SLAM node
-ros2 node list | grep slam
-```
-
-**Solution:**
-- Ensure robot is moving (static robot = no map)
-- Verify /scan topic has valid data (not all .inf)
-
-### Issue: Robot not moving in Gazebo
-
-**Check:**
-```bash
-ros2 topic echo /cmd_vel
-```
-
-**Solution:**
-- Verify teleop node is publishing
-- Check CHAMP controller is running
-
-## Repository Information
-
-**Created**: December 2024
-**Platform**: ROS2 Humble on Ubuntu 22.04
-**Robot**: Unitree Go2 EDU
-**Simulation**: Gazebo Classic
-
-## Credits
-
-This project builds upon:
-- [CHAMP Quadruped Controller](https://github.com/chvmp/champ)
-- [Unitree Robotics](https://github.com/unitreerobotics/unitree_ros)
-- [anujjain-dev/unitree-go2-ros2](https://github.com/anujjain-dev/unitree-go2-ros2)
-
-## License
-
-See individual package licenses.
+This repository contains the simulation phase implementation with Gazebo integration, SLAM Toolbox, and Nav2 configured for the Unitree Go2 EDU robot.
 
 ---
 
-**For detailed step-by-step documentation, see the research repository.**
+**Last Updated**: December 2024
