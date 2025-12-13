@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>cartographer_slam</name>
+  <version>0.0.1</version>
+  <description>Cartographer-based SLAM launch and config for the Go2 simulation.</description>
+
+  <maintainer email="placeholder@example.com">sahas</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>cartographer_ros</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
