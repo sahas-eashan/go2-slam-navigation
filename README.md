@@ -15,7 +15,7 @@ Implementing autonomous navigation for the Unitree Go2 EDU quadruped robot, util
 
 ## Implementation Phases
 
-### Phase 1: Simulation
+### Simulation
 
 #### 1. URDF Integration and Verification
 Obtain and verify the Unitree Go2 URDF model with proper joint configurations and sensor frames (map, odom, base_link, imu_link, lidar_link). Test the model in RViz and validate the TF tree structure.
@@ -40,29 +40,3 @@ Connect Nav2 motion commands to the Go2 control interface through the ROS 2 driv
 
 #### 8. Full Simulation Testing
 Launch complete navigation pipeline in Gazebo: set initial pose, send navigation goals, and verify global path planning, dynamic obstacle avoidance, and smooth local control.
-
-### Phase 2: Real Robot Implementation
-
-#### 9. Hardware Preparation
-Install Unitree ROS 2 SDK/bridge and establish network connectivity between the Go2 and ROS 2 PC. Verify real sensor data availability and replicate simulation TF structure.
-
-#### 10. Parameter Tuning
-Adjust SLAM and sensor parameters based on real sensor behavior. Ensure time synchronization and stability of LiDAR, IMU, and odometry data with the TF tree.
-
-#### 11. Physical SLAM Mapping
-Launch SLAM with tuned parameters and real sensor data. Teleoperate the Go2 to build a complete map, avoiding problematic surfaces. Save the final map and pose graph.
-
-#### 12. Real-World Navigation
-Load the real map and launch Nav2 with simulation-based configurations. Use RViz for initial pose estimation and goal setting. Tune speed limits, controller parameters, obstacle inflation, and recovery behaviors for quadruped-specific dynamics.
-
-#### 13. Testing and Validation
-Conduct repeated waypoint navigation tasks. Measure pose accuracy, path tracking stability, and dynamic obstacle behavior. Iteratively adjust sensor filtering, odometry fusion, and local planner gains for safe operation.
-
-## Current Status
-
-This repository contains the simulation phase implementation with Gazebo integration, SLAM Toolbox, and Nav2 configured for the Unitree Go2 EDU robot.
-
----
-
-**Last Updated**: December 2025
-
